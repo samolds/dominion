@@ -1,0 +1,9 @@
+*.swp
+*.o
+*.hi
+*.dyn_*
+
+client
+test
+flatt/
+notes.txt
