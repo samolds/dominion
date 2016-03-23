@@ -1,6 +1,6 @@
 # Dominion Card Game Client
 This is based on the [Dominion](https://en.wikipedia.org/wiki/Dominion_(card_game)) card
-deck building game. The specification was specified in three parts
+deck building game. The specification was provided in three steps
 [here](http://www.cs.utah.edu/~mflatt/cs5965/Dominion_Protocol_v1.html),
 [here](http://www.cs.utah.edu/~mflatt/cs5965/Dominion_Protocol_v2.html), and
 [here](http://www.cs.utah.edu/~mflatt/cs5965/Dominion_Protocol_v3.html).

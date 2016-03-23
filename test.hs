@@ -8,7 +8,6 @@
 
 {-# LANGUAGE TemplateHaskell #-}
 import Test.QuickCheck
-import qualified Control.Lens as L
 import Cards
 import qualified Play
 import qualified Parse
@@ -20,30 +19,34 @@ import qualified Parse
 main :: IO ()
 main = do
          testParse
-         testState
-         testNotificationMove
-         testNotificationMoved
-         testNotificationAttack
-         testNotificationDefend
          testRespond
          testPlay
-         testDefend
-         testPlayer
-         -- TODO: Write much many more tests!
+         ---- TODO: Write much many more tests!
 
 
 --------------------------------------------------------------------------------------
 -- Parser                                                                           --
 --------------------------------------------------------------------------------------
-testParse = let stringNotif = "(move ((players barry wally bart jay) (supply Silver Silver Silver Silver Gold Gold Gold Gold) " ++
-                              "(trash) (actions 1) (buys 1) (coins 0) (deck) (hand Copper Copper Copper Copper Copper Mine Mine Mine Mine Mine) (plays) (discards)))"
-                badString   = "(move ((trash blurpy blurps) (actions 1) (buys 1) (coins 0) (deck) (hand Copper Copper Copper Copper Copper Mine Mine Mine Mine Mine) (plays) (discards)))"
-                realNotif   = Move (State ["barry", "wally", "bart", "jay"] [Silver, Silver, Silver, Silver, Gold, Gold, Gold, Gold] [] 1 1 0 [] [Copper, Copper, Copper, Copper, Copper, Mine, Mine, Mine, Mine, Mine] [] [])
-                badNotif    = Move (State ["bad", "wally", "bart", "jay"] [Silver, Silver, Silver, Silver, Gold, Gold, Gold, Gold] [] 1 1 0 [] [Copper, Copper, Copper, Copper, Copper, Mine, Mine, Mine, Mine, Mine] [] [])
+testParse = let moveStringNotif   = "(move ((players barry wally bart jay) (supply Silver Silver Silver Silver Gold Gold Gold Gold) " ++
+                                    "(trash) (actions 1) (buys 1) (coins 0) (deck) (hand Copper Copper Copper Copper Copper Mine Mine Mine Mine Mine) (plays) (discards)))"
+                movedStringNotif  = "(moved barry (add silver))"
+                attackStringNotif = "(attacked (act militia) wally ((players barry wally) (supply) (trash) (actions 0) (buys 0) (coins 0) (deck) (hand) (plays) (discards)))"
+                defendStringNotif = "(defended wally (moat))"
+                badStringNotif    = "(move ((trash blurpy blurps) (actions 1) (buys 1) (coins 0) (deck) (hand Copper Copper Copper Copper Copper Mine Mine Mine Mine Mine) (plays) (discards)))"
+
+                moveNotif    = Move (State ["barry", "wally", "bart", "jay"] [Silver, Silver, Silver, Silver, Gold, Gold, Gold, Gold] [] 1 1 0 [] [Copper, Copper, Copper, Copper, Copper, Mine, Mine, Mine, Mine, Mine] [] [])
+                badMoveNotif = Move (State ["bad", "wally", "bart", "jay"] [Silver, Silver, Silver, Silver, Gold, Gold, Gold, Gold] [] 1 1 0 [] [Copper, Copper, Copper, Copper, Copper, Mine, Mine, Mine, Mine, Mine] [] [])
+                movedNotif   = Moved "barry" (Add Silver)
+                attackNotif  = Attacked (Act [Militia]) "wally" (State ["barry", "wally"] [] [] 0 0 0 [] [] [] [])
+                defendNotif  = Defended "wally" (Block Moat)
+
             in  do
-                  quickCheck (testGoodParse stringNotif realNotif)
-                  quickCheck (testParseError badString)
-                  quickCheck (testBadParse stringNotif badNotif)
+                  quickCheck (testGoodParse moveStringNotif moveNotif)
+                  quickCheck (testGoodParse movedStringNotif movedNotif)
+                  quickCheck (testGoodParse attackStringNotif attackNotif)
+                  quickCheck (testGoodParse defendStringNotif defendNotif)
+                  quickCheck (testParseError badStringNotif)
+                  quickCheck (testBadParse moveStringNotif badMoveNotif)
 
 testGoodParse stringNotif realNotif = case (Parse.parseState stringNotif) of
                                            Left err -> False
@@ -59,24 +62,35 @@ testParseError stringBadNotif = case (Parse.parseState stringBadNotif) of
 
 
 --------------------------------------------------------------------------------------
--- State                                                                            --
---------------------------------------------------------------------------------------
-testState = quickCheck False
-
-
---------------------------------------------------------------------------------------
--- Notification                                                                     --
---------------------------------------------------------------------------------------
-testNotificationMove = quickCheck False
-testNotificationMoved = quickCheck False
-testNotificationAttack = quickCheck False
-testNotificationDefend = quickCheck False
-
-
---------------------------------------------------------------------------------------
 -- Respond                                                                          --
 --------------------------------------------------------------------------------------
-testRespond = quickCheck False
+testRespond = let state1      = State ["barry", "wally"] [] [] 0 0 0 [] [Copper, Estate, Estate, Copper, Copper] [] []
+                  state2      = State ["barry", "wally"] [] [] 1 1 0 [] [Copper, Estate, Estate, Moat, Copper] [] []
+                  state3      = State ["barry", "wally"] [] [] 0 0 0 [] [Estate, Copper, Mine, Militia, Copper] [] []
+                  state4      = State ["barry", "wally"] [] [] 1 1 0 [] [Copper, Copper, Copper, Copper, Copper] [] []
+                  state5      = State ["barry", "wally"] [Silver, Mine, Duchy, Copper, Mine, Moat, Province] [] 1 1 5 [] [] [] []
+                  state6      = State ["barry", "wally"] [Silver, Mine, Duchy, Copper, Mine, Moat, Province] [] 0 0 0 [] [] [] []
+                  attackPlay  = (Act [Militia])
+              in  do
+                    quickCheck (case Play.defend attackPlay state1 of
+                                     Nothing -> False
+                                     Just defense -> (Cards.Discard [Estate, Estate]) == defense)
+                    quickCheck (case Play.defend attackPlay state2 of
+                                     Nothing -> False
+                                     Just defense -> (Cards.Block Moat) == defense)
+                    quickCheck (case Play.defend attackPlay state3 of
+                                     Nothing -> False
+                                     Just defense -> (Cards.Discard [Estate, Militia]) == defense)
+                    quickCheck (case Play.play state2 of
+                                     Nothing -> False
+                                     Just playMade -> (Act [Moat]) == playMade)
+                    quickCheck (case Play.play state4 of
+                                     Nothing -> False
+                                     Just playMade -> (Add Copper) == playMade)
+                    quickCheck (case Play.play state6 of
+                                     Nothing -> False
+                                     Just playMade -> (Clean []) == playMade)
+
 
 
 --------------------------------------------------------------------------------------
@@ -96,18 +110,6 @@ testGoodPlay state goodPlay = case (Play.play state) of
 testBadPlay state badPlay = case (Play.play state) of
                                  Nothing -> False
                                  Just play -> play /= badPlay
-
-
---------------------------------------------------------------------------------------
--- Defend                                                                           --
---------------------------------------------------------------------------------------
-testDefend = quickCheck False
-
-
---------------------------------------------------------------------------------------
--- Player Logic                                                                     --
---------------------------------------------------------------------------------------
-testPlayer = quickCheck False
 
 
 
