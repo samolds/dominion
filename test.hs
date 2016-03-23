@@ -18,11 +18,62 @@ import qualified Parse
 --------------------------------------------------------------------------------------
 main :: IO ()
 main = do
+         testFullTurn
          testParse
          testRespond
          testPlay
          ---- TODO: Write much many more tests!
 
+
+--------------------------------------------------------------------------------------
+-- End to End System Tests                                                          --
+--------------------------------------------------------------------------------------
+testFullTurn = let moveStateString1 = "(move ((players 1-sam 0-player-v3-soldier) (supply copper copper copper copper copper copper copper copper copper copper copper copper copper copper copper copper copper copper " ++
+                                      "copper copper copper copper copper copper copper copper copper copper copper copper copper copper copper copper copper copper copper copper copper copper copper copper copper copper " ++
+                                      "copper copper silver silver silver silver silver silver silver silver silver silver silver silver silver silver silver silver silver silver silver silver silver silver silver silver " ++
+                                      "silver silver silver silver silver silver silver silver silver silver silver silver silver silver silver silver gold gold gold gold gold gold gold gold gold gold gold gold gold gold " ++
+                                      "gold gold gold gold gold gold gold gold gold gold gold gold gold gold gold gold estate estate estate estate estate estate estate estate duchy duchy duchy duchy duchy duchy duchy " ++
+                                      "duchy province province province province province province province province mine mine mine mine mine mine mine mine mine mine cellar cellar cellar cellar cellar cellar cellar cellar " ++
+                                      "cellar cellar market market market market market market market market market market remodel remodel remodel remodel remodel remodel remodel remodel remodel remodel smithy smithy " ++
+                                      "smithy smithy smithy smithy smithy smithy smithy smithy village village village village village village village village village village woodcutter woodcutter woodcutter woodcutter " ++
+                                      "woodcutter woodcutter woodcutter woodcutter woodcutter woodcutter workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop militia militia militia " ++
+                                      "militia militia militia militia militia militia militia moat moat moat moat moat moat moat moat moat) (trash) (actions 1) (buys 1) (coins 0) (deck copper copper copper estate estate) " ++
+                                      "(hand copper estate copper copper copper) (plays) (discards)))"
+                   moveStateString2 = "(move ((players 1-sam 0-player-v3-soldier) (supply copper copper copper copper copper copper copper copper copper copper copper copper copper copper copper copper copper copper " ++
+                                      "copper copper copper copper copper copper copper copper copper copper copper copper copper copper copper copper copper copper copper copper copper copper copper copper copper copper " ++
+                                      "copper copper silver silver silver silver silver silver silver silver silver silver silver silver silver silver silver silver silver silver silver silver silver silver silver silver " ++
+                                      "silver silver silver silver silver silver silver silver silver silver silver silver silver silver silver silver gold gold gold gold gold gold gold gold gold gold gold gold gold gold " ++
+                                      "gold gold gold gold gold gold gold gold gold gold gold gold gold gold gold gold estate estate estate estate estate estate estate estate duchy duchy duchy duchy duchy duchy duchy " ++
+                                      "duchy province province province province province province province province mine mine mine mine mine mine mine mine mine mine cellar cellar cellar cellar cellar cellar cellar cellar " ++
+                                      "cellar cellar market market market market market market market market market market remodel remodel remodel remodel remodel remodel remodel remodel remodel remodel smithy smithy " ++
+                                      "smithy smithy smithy smithy smithy smithy smithy smithy village village village village village village village village village village woodcutter woodcutter woodcutter woodcutter " ++
+                                      "woodcutter woodcutter woodcutter woodcutter woodcutter woodcutter workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop militia militia militia " ++
+                                      "militia militia militia militia militia militia militia moat moat moat moat moat moat moat moat moat) (trash) (actions 1) (buys 1) (coins 4) (deck copper copper copper estate estate) " ++
+                                      "(hand estate) (plays copper copper copper copper) (discards)))"
+                   moveStateString3 = "(move ((players 1-sam 0-player-v3-soldier) (supply copper copper copper copper copper copper copper copper copper copper copper copper copper copper copper copper copper copper " ++
+                                      "copper copper copper copper copper copper copper copper copper copper copper copper copper copper copper copper copper copper copper copper copper copper copper copper copper copper " ++
+                                      "copper copper silver silver silver silver silver silver silver silver silver silver silver silver silver silver silver silver silver silver silver silver silver silver silver silver " ++
+                                      "silver silver silver silver silver silver silver silver silver silver silver silver silver silver silver silver gold gold gold gold gold gold gold gold gold gold gold gold gold gold " ++
+                                      "gold gold gold gold gold gold gold gold gold gold gold gold gold gold gold gold estate estate estate estate estate estate estate estate duchy duchy duchy duchy duchy duchy duchy " ++
+                                      "duchy province province province province province province province province mine mine mine mine mine mine mine mine mine mine cellar cellar cellar cellar cellar cellar cellar cellar " ++
+                                      "cellar cellar market market market market market market market market market market remodel remodel remodel remodel remodel remodel remodel remodel remodel remodel smithy smithy " ++
+                                      "smithy smithy smithy smithy smithy smithy smithy smithy village village village village village village village village village village woodcutter woodcutter woodcutter woodcutter " ++
+                                      "woodcutter woodcutter woodcutter woodcutter woodcutter woodcutter workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop militia militia militia " ++
+                                      "militia militia militia militia militia militia militia moat moat moat moat moat moat moat moat moat) (trash) (actions 1) (buys 1) (coins 0) (deck copper copper copper estate estate) " ++
+                                      "(hand village mine copper copper copper) (plays) (discards)))"
+                   response1        = PlayMade (Add Copper)
+                   response2        = PlayMade (Buy Smithy)
+                   response3        = PlayMade (Act [Village])
+               in  do
+                     quickCheck (testProperResponse moveStateString1 response1)
+                     quickCheck (testProperResponse moveStateString2 response2)
+                     quickCheck (testProperResponse moveStateString3 response3)
+
+testProperResponse string response = case (Parse.parseState string) of
+                                          Left err -> False
+                                          Right notif -> case (Play.respond notif) of
+                                                              Nothing -> False
+                                                              Just playResponse -> playResponse == response
 
 --------------------------------------------------------------------------------------
 -- Parser                                                                           --

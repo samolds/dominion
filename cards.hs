@@ -24,6 +24,7 @@ module Cards
   ActionType(..),
   Defense(..),
   Notification(..),
+  Response(..),
   Play(..),
   State(..),
 
@@ -65,6 +66,7 @@ data Card = Province | Duchy | Estate | Curse |
 data CardType     = Victory | Treasure | Action deriving (Eq, Ord, Read, Bounded, Enum)
 data ActionType   = General | Attack | Defend deriving (Eq, Ord, Read, Bounded, Enum)
 data Notification = Move State | Moved String Play | Attacked Play String State | Defended String Defense deriving (Eq, Read)
+data Response     = PlayMade Play | DefenseMade Defense deriving (Eq, Read)
 data Play         = Act [Card] | Add Card | Buy Card | Clean [Card] deriving (Eq, Read)
 data Defense      = Block Card | Discard [Card] deriving (Eq, Read)
 
@@ -190,6 +192,11 @@ instance Show Notification where
   show (Moved name play)          = "(moved " ++ name ++ " " ++ show play ++ ")"
   show (Attacked play name state) = "(attacked " ++ show play ++ " " ++ name ++ " " ++ show state ++ ")"
   show (Defended name defense)    = "(defended " ++ name ++ " " ++ show defense ++ ")"
+
+-- How to print a response
+instance Show Response where
+  show (PlayMade play)       = show play
+  show (DefenseMade defense) = show defense
 
 -- How to print a play
 instance Show Play where

@@ -21,18 +21,16 @@ import qualified Cards
 --------------------------------------------------------------------------------------
 -- Responds to a Notification with the correct response string                      --
 --------------------------------------------------------------------------------------
--- Responds with the correct responds depending on the notification type
-respond :: Cards.Notification -> String
+-- Responds with the correct response depending on the notification type
+respond :: Cards.Notification -> Maybe Cards.Response
 respond (Cards.Move state)               = case Play.play state of -- Make a play with the state
-                                                -- Print out move if successful
-                                                Just newPlay -> show newPlay
-                                                Nothing -> ""
-respond (Cards.Moved name play)          = "" -- Don't do anything
+                                                Nothing -> Nothing
+                                                Just playmade -> Just (Cards.PlayMade playmade)
+respond (Cards.Moved name play)          = Nothing -- Don't do anything
 respond (Cards.Attacked play name state) = case Play.defend play state of -- Either show a defense card or "take a hit"
-                                                -- Print out block or penalty
-                                                Just defense -> show defense
-                                                Nothing -> ""
-respond (Cards.Defended name defense)    = "" -- Don't do anything
+                                                Nothing -> Nothing
+                                                Just defensemade -> Just (Cards.DefenseMade defensemade)
+respond (Cards.Defended name defense)    = Nothing -- Don't do anything
 
 
 --------------------------------------------------------------------------------------

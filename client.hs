@@ -8,7 +8,7 @@
 
 import qualified Parse
 import qualified Play
-import qualified System.IO
+import qualified System.IO as SIO
 
 
 --------------------------------------------------------------------------------------
@@ -18,8 +18,6 @@ main :: IO ()
 main = do
   -- Get user input
   gameState <- getLine
-  -- printError $ show "DEBUG-- "
-  -- printError gameState
 
   -- Break on double line break
   if null gameState
@@ -28,13 +26,16 @@ main = do
      else case Parse.parseState gameState of 
                Left err -> printError $ show err
                -- Parse was successful, get a response
-               Right notif -> putStrLn (Play.respond notif)
+               Right notif -> case Play.respond notif of
+                                   Nothing -> putStr ""
+                                   Just response -> putStr (show response)
+  SIO.hFlush SIO.stdout -- flush the output buffer
   main -- Keep waiting for input
 
 
 
 -- Prints out a message to standard error
-printError err = System.IO.hPrint System.IO.stderr err
+printError err = SIO.hPrint SIO.stderr err
 
 
 --------------------------------------------------------------------------------------
