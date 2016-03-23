@@ -1,0 +1,8 @@
+#!/bin/sh
+# This script was created by make-mzscheme-launcher
+
+# {{{ bindir
+bindir="/Applications/Racket621/bin"
+# }}} bindir
+
+exec "${bindir}/racket" -N "$0" '-t' '/Users/samolds/Desktop/Spring/CS 5965/hw2-dominion/flatt/v3/player-v1.rkt' '-U' '--'  ${1+"$@"}
