@@ -9,4 +9,4 @@ test: test.hs
 	@rm -f *.o *.hi *.dyn_*
 
 clean:
-	@rm -f client test
+	@rm -f *.o *.hi *.dyn_* client test

@@ -9,6 +9,7 @@
 
 module Play
 ( 
+  respond,
   play,
   defend,
 ) where
@@ -16,6 +17,22 @@ import qualified Control.Lens as L
 import qualified Player
 import qualified Cards
 
+
+--------------------------------------------------------------------------------------
+-- Responds to a Notification with the correct response string                      --
+--------------------------------------------------------------------------------------
+-- Responds with the correct responds depending on the notification type
+respond :: Cards.Notification -> String
+respond (Cards.Move state)               = case Play.play state of -- Make a play with the state
+                                                -- Print out move if successful
+                                                Just newPlay -> show newPlay
+                                                Nothing -> ""
+respond (Cards.Moved name play)          = "" -- Don't do anything
+respond (Cards.Attacked play name state) = case Play.defend play state of -- Either show a defense card or "take a hit"
+                                                -- Print out block or penalty
+                                                Just defense -> show defense
+                                                Nothing -> ""
+respond (Cards.Defended name defense)    = "" -- Don't do anything
 
 
 --------------------------------------------------------------------------------------
